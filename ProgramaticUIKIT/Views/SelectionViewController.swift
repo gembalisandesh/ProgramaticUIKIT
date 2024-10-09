@@ -52,6 +52,11 @@ class SelectionViewController: UIViewController {
         setupConstraints()
         setupActions()
         titleLabel.text = selectionType
+        
+        selectedOptions = Set(options)
+        selectAllButton.setTitle("Deselect All", for: .normal)
+        selectAllButton.setTitleColor(.systemRed, for: .normal)
+        tableView.reloadData()
     }
 
     private func setupViews() {
@@ -109,7 +114,6 @@ class SelectionViewController: UIViewController {
     }
 
     @objc private func applyTapped() {
-
         onSelectionCompleted?(selectedOptions)
         dismiss(animated: true, completion: nil)
     }
@@ -138,4 +142,4 @@ extension SelectionViewController: UITableViewDataSource, UITableViewDelegate {
         }
         tableView.reloadRows(at: [indexPath], with: .automatic)
     }
-} 
+}
