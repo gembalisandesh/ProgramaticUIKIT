@@ -21,6 +21,7 @@ class FilterViewController: UIViewController {
     }
 
     private var viewModel = FilterViewModel()
+    private var categoryPriority: [String: Int] = [:]
     private var availableAccountNumbers: [String] = [] {
         didSet {
             print("Available account numbers updated: \(availableAccountNumbers)")
@@ -174,24 +175,38 @@ class FilterViewController: UIViewController {
             print("No company selected. Default selections are applied.")
             return
         }
-
-        let results = viewModel.getFilteredResults(
-            for: selectedCompanyName,
-            selectedAccountNumbers: selectedAccountNumbers,
-            selectedBrands: selectedBrands,
-            selectedLocations: selectedLocations
-        )
-
-        availableAccountNumbers = results.0
-        availableBrands = results.1
-        availableLocations = results.2
-
-        filterCounts = [
-            availableAccountNumbers.count,
-            availableBrands.count,
-            availableLocations.count
-        ]
-
+        
+        if selectedAccountNumbers.isEmpty && selectedBrands.isEmpty && selectedLocations.isEmpty {
+            let results = viewModel.getFilteredResults(for: selectedCompanyName, selectedAccountNumbers: [], selectedBrands: [], selectedLocations: [])
+            availableAccountNumbers = results.0
+            availableBrands = results.1
+            availableLocations = results.2
+        } else {
+            let sortedCategories = categoryPriority.sorted { $0.value < $1.value }.map { $0.key }
+            var results: ([String], [String], [String]) = ([], [], [])
+            for category in sortedCategories {
+                switch category {
+                case "Account Numbers":
+                    results = viewModel.getFilteredResults(for: selectedCompanyName, selectedAccountNumbers: selectedAccountNumbers, selectedBrands: selectedBrands, selectedLocations: selectedLocations)
+                    availableAccountNumbers = results.0
+                    availableBrands = results.1
+                    availableLocations = results.2
+                    
+                case "Brands":
+                    results = viewModel.getFilteredResults(for: selectedCompanyName, selectedAccountNumbers: selectedAccountNumbers, selectedBrands: selectedBrands, selectedLocations: selectedLocations)
+                    availableBrands = results.1
+                    
+                case "Locations":
+                    results = viewModel.getFilteredResults(for: selectedCompanyName, selectedAccountNumbers: selectedAccountNumbers, selectedBrands: selectedBrands, selectedLocations: selectedLocations)
+                    availableLocations = results.2
+                    
+                default:
+                    break
+                }
+            }
+        }
+        
+        filterCounts = [availableAccountNumbers.count, availableBrands.count, availableLocations.count]
         filterTableView.reloadData()
         print("Available selections updated for company: \(selectedCompanyName)")
     }
@@ -259,40 +274,49 @@ extension FilterViewController: UITableViewDataSource, UITableViewDelegate {
             selectionVC.options = availableAccountNumbers
             selectionVC.selectedOptions = Set(selectedAccountNumbers)
             selectionVC.selectionType = "Account Numbers"
+  
+            if categoryPriority["Account Numbers"] == nil {
+                categoryPriority["Account Numbers"] = categoryPriority.count + 1
+            }
+            
         case 1:
             selectionVC.options = availableBrands
             selectionVC.selectedOptions = Set(selectedBrands)
             selectionVC.selectionType = "Brands"
+            
+            if categoryPriority["Brands"] == nil {
+                categoryPriority["Brands"] = categoryPriority.count + 1
+            }
+            
         case 2:
             selectionVC.options = availableLocations
             selectionVC.selectedOptions = Set(selectedLocations)
             selectionVC.selectionType = "Locations"
+            
+            if categoryPriority["Locations"] == nil {
+                categoryPriority["Locations"] = categoryPriority.count + 1
+            }
+            
         default:
             return
         }
 
         selectionVC.onSelectionCompleted = { [weak self] selected in
             guard let self = self else { return }
-
             switch indexPath.row {
             case 0:
-                if self.selectedAccountNumbers != Set(selected) {
-                    self.selectedAccountNumbers = Set(selected)
-                    self.updateAvailableSelections()
-                }
+                self.selectedAccountNumbers = Set(selected)
+                self.updateAvailableSelections()
             case 1:
-                if self.selectedBrands != Set(selected) {
-                    self.selectedBrands = Set(selected)
-                    self.updateAvailableSelections()
-                }
+                self.selectedBrands = Set(selected)
+                self.updateAvailableSelections()
             case 2:
-                if self.selectedLocations != Set(selected) {
-                    self.selectedLocations = Set(selected)
-                    self.updateAvailableSelections()
-                }
+                self.selectedLocations = Set(selected)
+                self.updateAvailableSelections()
             default:
                 break
             }
+            self.updateAvailableSelections()
         }
 
         present(selectionVC, animated: true, completion: nil)
