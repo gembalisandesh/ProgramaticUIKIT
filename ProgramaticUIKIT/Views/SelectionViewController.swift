@@ -53,10 +53,6 @@ class SelectionViewController: UIViewController {
         setupActions()
         titleLabel.text = selectionType
         
-        selectedOptions = Set(options)
-        selectAllButton.setTitle("Deselect All", for: .normal)
-        selectAllButton.setTitleColor(.systemRed, for: .normal)
-        tableView.reloadData()
     }
 
     private func setupViews() {
