@@ -13,7 +13,6 @@
 - [Usage](#usage)
 - [Dependencies](#dependencies)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
