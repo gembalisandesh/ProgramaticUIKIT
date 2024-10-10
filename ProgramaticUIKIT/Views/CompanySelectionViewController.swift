@@ -3,11 +3,6 @@
 //
 // Created by Equipp on 08/10/24.
 
-// CompanySelectionViewController.swift
-// ProgramaticUIKIT
-//
-// Created by Equipp on 08/10/24.
-
 import UIKit
 
 class CompanySelectionViewController: UIViewController {
