@@ -104,21 +104,25 @@ class FilterViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Apply Filters"
-
-        companies = FilterDataManager.shared.getCompanyNames()
-
-        if !companies.isEmpty {
-            selectedCompanyName = companies[0]
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.companies = FilterDataManager.shared.getCompanyNames()
+            
+            
+            DispatchQueue.main.async {
+                if !self.companies.isEmpty {
+                    self.selectedCompanyName = self.companies[0]
+                }
+                self.setupUI()
+                self.filterTableView.dataSource = self
+                self.filterTableView.delegate = self
+                self.companyCollectionView.dataSource = self
+                self.companyCollectionView.delegate = self
+                self.companyCollectionView.register(CompanyCollectionViewCell.self, forCellWithReuseIdentifier: CompanyCollectionViewCell.reuseIdentifier)
+                
+                self.updateAvailableSelections()
+            }
         }
-        setupUI()
-        filterTableView.dataSource = self
-        filterTableView.delegate = self
-        companyCollectionView.dataSource = self
-        companyCollectionView.delegate = self
-
-        companyCollectionView.register(CompanyCollectionViewCell.self, forCellWithReuseIdentifier: CompanyCollectionViewCell.reuseIdentifier)
-
-        updateAvailableSelections()
     }
 
     private func setupUI() {
@@ -174,26 +178,32 @@ class FilterViewController: UIViewController {
             print("No company selected. Default selections are applied.")
             return
         }
-
-        let results = viewModel.getFilteredResults(
-            for: selectedCompanyName,
-            selectedAccountNumbers: selectedAccountNumbers,
-            selectedBrands: selectedBrands,
-            selectedLocations: selectedLocations
-        )
-
-        availableAccountNumbers = results.0
-        availableBrands = results.1
-        availableLocations = results.2
-
-        filterCounts = [
-            availableAccountNumbers.count,
-            availableBrands.count,
-            availableLocations.count
-        ]
-
-        filterTableView.reloadData()
-        print("Available selections updated for company: \(selectedCompanyName)")
+        
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            let results = self.viewModel.getFilteredResults(
+                for: selectedCompanyName,
+                selectedAccountNumbers: self.selectedAccountNumbers,
+                selectedBrands: self.selectedBrands,
+                selectedLocations: self.selectedLocations
+            )
+            
+            
+            DispatchQueue.main.async {
+                self.availableAccountNumbers = results.0
+                self.availableBrands = results.1
+                self.availableLocations = results.2
+                
+                self.filterCounts = [
+                    self.availableAccountNumbers.count,
+                    self.availableBrands.count,
+                    self.availableLocations.count
+                ]
+                
+                self.filterTableView.reloadData()
+                print("Available selections updated for company: \(selectedCompanyName)")
+            }
+        }
     }
 
     private func getFilteredResults() {
@@ -202,19 +212,28 @@ class FilterViewController: UIViewController {
         print("Selected Brands: \(Array(selectedBrands))")
         print("Selected Locations: \(Array(selectedLocations))")
 
-        let results = viewModel.getFilteredResults(for: selectedCompanyName ?? "", selectedAccountNumbers: selectedAccountNumbers, selectedBrands: selectedBrands, selectedLocations: selectedBrands)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let results = self.viewModel.getFilteredResults(
+                for: self.selectedCompanyName ?? "",
+                selectedAccountNumbers: self.selectedAccountNumbers,
+                selectedBrands: self.selectedBrands,
+                selectedLocations: self.selectedLocations
+            )
 
-        availableAccountNumbers = results.0
-        availableBrands = results.1
-        availableLocations = results.2
+            DispatchQueue.main.async {
+                self.availableAccountNumbers = results.0
+                self.availableBrands = results.1
+                self.availableLocations = results.2
 
-        filterCounts = [
-            availableAccountNumbers.count,
-            availableBrands.count,
-            availableLocations.count
-        ]
+                self.filterCounts = [
+                    self.availableAccountNumbers.count,
+                    self.availableBrands.count,
+                    self.availableLocations.count
+                ]
 
-        filterTableView.reloadData()
+                self.filterTableView.reloadData()
+            }
+        }
     }
 }
 

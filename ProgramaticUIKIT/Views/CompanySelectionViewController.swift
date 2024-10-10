@@ -77,7 +77,12 @@ class CompanySelectionViewController: UIViewController {
     private func setupDefaultData() {
         if (companyName?.isEmpty ?? true) && merchantIds.isEmpty {
             companyName = "CITY CENTRE COMMERCIAL CO.KSC"
-            merchantIds = viewModel.getMIDs(for: companyName ?? "CITY CENTRE COMMERCIAL CO.KSC")
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fetchedMerchantIds = self.viewModel.getMIDs(for: self.companyName ?? "CITY CENTRE COMMERCIAL CO.KSC")
+                DispatchQueue.main.async {
+                    self.merchantIds = fetchedMerchantIds
+                }
+            }
         }
     }
 
